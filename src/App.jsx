@@ -93,13 +93,7 @@ const Timer = () => {
 
   // Notify the user when timer completes
   const notifyUser = () => {
-    // Vibration API (works on mobile devices that support it)
-    if ("vibrate" in navigator && isMobile) {
-      // Simple 300ms vibration
-      navigator.vibrate(300);
-    }
-
-    // Play custom audio alert
+   // Play custom audio alert
     const audio = new Audio("/happy-bell-alert.wav"); // Correctly create audio object
     audio.volume = 0.7; // ✅ Set volume directly
     audio.play().catch(e => console.warn("Could not play audio alert:", e)); // Play audio
