@@ -5,7 +5,7 @@ No need to manually stop it after the alarm.
 
 ## Web version
 
-🔗 **[https://simple-timer-sepia.vercel.app](https://simple-timer-sepia.vercel.app)**
+🔗 **[https://simple-timer-sepia.vercel.app](https://simple-timer-sepia.vercel.app)** (only tested in Firefox for MacOS and in Firefox vor Android)
 
 
 # Installation on local machine
