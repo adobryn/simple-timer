@@ -38,8 +38,6 @@ const Timer = () => {
   const [originalTime, setOriginalTime] = useState(60);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Audio ref for sound notification
-  const audioRef = useRef(null);
   // Use useRef for interval tracking instead of variable
   const timerIntervalRef = useRef(null);
 
@@ -91,37 +89,21 @@ const Timer = () => {
   const stopTimer = () => {
     setRunning(false);
     setTimeLeft(null);
-
-    // Stop any playing audio
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
   };
 
-  // Function to notify the user when timer completes
+  // Notify the user when timer completes
   const notifyUser = () => {
-    // Use appropriate notification methods based on device type
-
-    // Web Notification (works best on desktop)
-    if ("Notification" in window && Notification.permission === "granted") {
-      new Notification("⏳ Timer Done!");
-    }
-
     // Vibration API (works on mobile devices that support it)
     if ("vibrate" in navigator && isMobile) {
-      // Simple 300ms vibration as requested
+      // Simple 300ms vibration
       navigator.vibrate(300);
     }
 
-    // Audio alert (works on most devices)
-    if (audioRef.current) {
-      // Set volume to an appropriate level
-      audioRef.current.volume = 0.7;
-      audioRef.current.play().catch(e => {
-        console.warn("Could not play audio alert:", e);
-      });
-    }
+    // Play custom audio alert
+    const audio = new Audio("/happy-bell-alert.wav"); // Correctly create audio object
+    audio.volume = 0.7; // ✅ Set volume directly
+    audio.play().catch(e => console.warn("Could not play audio alert:", e)); // Play audio
+
   };
 
   // Countdown effect with proper cleanup
@@ -177,13 +159,6 @@ const Timer = () => {
   return (
       <div style={styles.pageContainer}>
         <div style={styles.container}>
-          {/* Hidden audio element for sound notification */}
-          <audio ref={audioRef}>
-            <source src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" type="audio/mpeg" />
-            <source src="https://assets.mixkit.co/sfx/preview/mixkit-alert-quick-chime-766.mp3" type="audio/mpeg" />
-            Your browser does not support the audio element.
-          </audio>
-
           <h1 style={styles.title}>⏳ Simple Timer</h1>
 
           {/* Show countdown when running, otherwise show dropdowns */}
@@ -226,8 +201,8 @@ const Timer = () => {
           {isMobile && (
               <p style={styles.mobileInfo}>
                 {Notification.permission !== "granted" ?
-                    "Enable notifications for alerts when timer ends" :
-                    "Your device will vibrate when the timer ends"}
+                    "Please enable notifications for alerts when timer ends" :
+                    ""}
               </p>
           )}
         </div>
