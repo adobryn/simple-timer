@@ -3,7 +3,12 @@
 A simple web-based timer application that allows users to set a countdown and receive a single beep notification when the timer reaches zero. 
 No need to manually stop it after the alarm.
 
-# Installation
+## Web version
+
+🔗 **[https://simple-timer-sepia.vercel.app](https://simple-timer-sepia.vercel.app)**
+
+
+# Installation on local machine
 
 1. Clone the repository
 
