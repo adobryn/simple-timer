@@ -94,7 +94,7 @@ const Timer = () => {
   // Notify the user when timer completes
   const notifyUser = () => {
    // Play custom audio alert
-    const audio = new Audio("/happy-bell-alert.wav"); // Correctly create audio object
+    const audio = new Audio("/happy-bell-alert.mp3"); // Correctly create audio object
     audio.volume = 0.7; // ✅ Set volume directly
     audio.play().catch(e => console.warn("Could not play audio alert:", e)); // Play audio
 
