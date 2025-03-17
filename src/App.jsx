@@ -36,14 +36,32 @@ const Timer = () => {
   const [timeLeft, setTimeLeft] = useState(null);
   const [running, setRunning] = useState(false);
   const [originalTime, setOriginalTime] = useState(60);
+  const [isMobile, setIsMobile] = useState(false);
 
+  // Audio ref for sound notification
+  const audioRef = useRef(null);
   // Use useRef for interval tracking instead of variable
   const timerIntervalRef = useRef(null);
 
+  // Detect if the device is mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent.toLowerCase();
+      setIsMobile(/android|webos|iphone|ipad|ipod|blackberry|windows phone/i.test(userAgent));
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   // Request notification permission when the app loads
   useEffect(() => {
-    if (Notification.permission !== "granted" && Notification.permission !== "denied") {
-      Notification.requestPermission();
+    if ("Notification" in window) {
+      if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+        Notification.requestPermission();
+      }
     }
   }, []);
 
@@ -70,6 +88,37 @@ const Timer = () => {
   const stopTimer = () => {
     setRunning(false);
     setTimeLeft(null);
+
+    // Stop any playing audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+  };
+
+  // Function to notify the user when timer completes
+  const notifyUser = () => {
+    // Use appropriate notification methods based on device type
+
+    // Web Notification (works best on desktop)
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification("⏳ Timer Done!");
+    }
+
+    // Vibration API (works on mobile devices that support it)
+    if ("vibrate" in navigator && isMobile) {
+      // Simple 300ms vibration as requested
+      navigator.vibrate(300);
+    }
+
+    // Audio alert (works on most devices)
+    if (audioRef.current) {
+      // Set volume to an appropriate level
+      audioRef.current.volume = 0.7;
+      audioRef.current.play().catch(e => {
+        console.warn("Could not play audio alert:", e);
+      });
+    }
   };
 
   // Countdown effect with proper cleanup
@@ -85,9 +134,7 @@ const Timer = () => {
       }, 1000);
     } else if (timeLeft === 0 && running) {
       // Timer completed
-      if (Notification.permission === "granted") {
-        new Notification("⏳ Timer Done!");
-      }
+      notifyUser();
       setRunning(false);
     }
 
@@ -98,7 +145,7 @@ const Timer = () => {
         timerIntervalRef.current = null;
       }
     };
-  }, [running, timeLeft]);
+  }, [running, timeLeft, isMobile]);
 
   // Calculate progress percentage
   const progress = timeLeft !== null ? (timeLeft / originalTime) * 100 : 100;
@@ -125,61 +172,99 @@ const Timer = () => {
   ), [seconds, running]);
 
   return (
-      <div style={styles.container}>
-        <h1 style={styles.title}>⏳ Simple Timer</h1>
+      <div style={styles.pageContainer}>
+        <div style={styles.container}>
+          {/* Hidden audio element for sound notification */}
+          <audio ref={audioRef}>
+            <source src="https://assets.mixkit.co/sfx/preview/mixkit-alarm-digital-clock-beep-989.mp3" type="audio/mpeg" />
+            <source src="https://assets.mixkit.co/sfx/preview/mixkit-alert-quick-chime-766.mp3" type="audio/mpeg" />
+            Your browser does not support the audio element.
+          </audio>
 
-        {/* Show countdown when running, otherwise show dropdowns */}
-        {running ? (
-            <div style={styles.progressContainer}>
-              <CircularProgressbar
-                  value={progress}
-                  text={`${String(Math.floor(timeLeft / 60)).padStart(2, "0")}:${String(
-                      timeLeft % 60
-                  ).padStart(2, "0")}`}
-                  styles={buildStyles({
-                    textSize: "20px",
-                    pathColor: "#4CAF50", // Green progress color
-                    textColor: "#333",
-                    trailColor: "#ddd",
-                  })}
-              />
-            </div>
-        ) : (
-            <div style={styles.pickerContainer}>
-              {minuteSelect}
-              <span style={styles.colon}>:</span>
-              {secondSelect}
-            </div>
-        )}
+          <h1 style={styles.title}>⏳ Simple Timer</h1>
 
-        <div style={styles.buttonContainer}>
-          <button
-              onClick={startTimer}
-              disabled={running || (minutes === 0 && seconds === 0)}
-              style={styles.startButton}
-          >
-            {running ? "Running..." : "Start"}
-          </button>
-          <button onClick={stopTimer} disabled={!running} style={styles.stopButton}>
-            Stop
-          </button>
+          {/* Show countdown when running, otherwise show dropdowns */}
+          {running ? (
+              <div style={styles.progressContainer}>
+                <CircularProgressbar
+                    value={progress}
+                    text={`${String(Math.floor(timeLeft / 60)).padStart(2, "0")}:${String(
+                        timeLeft % 60
+                    ).padStart(2, "0")}`}
+                    styles={buildStyles({
+                      textSize: "20px",
+                      pathColor: "#4CAF50", // Green progress color
+                      textColor: "#333",
+                      trailColor: "#ddd",
+                    })}
+                />
+              </div>
+          ) : (
+              <div style={styles.pickerContainer}>
+                {minuteSelect}
+                <span style={styles.colon}>:</span>
+                {secondSelect}
+              </div>
+          )}
+
+          <div style={styles.buttonContainer}>
+            <button
+                onClick={startTimer}
+                disabled={running || (minutes === 0 && seconds === 0)}
+                style={styles.startButton}
+            >
+              {running ? "Running..." : "Start"}
+            </button>
+            <button onClick={stopTimer} disabled={!running} style={styles.stopButton}>
+              Stop
+            </button>
+          </div>
+
+          {isMobile && (
+              <p style={styles.mobileInfo}>
+                {Notification.permission !== "granted" ?
+                    "Enable notifications for alerts when timer ends" :
+                    "Your device will vibrate when the timer ends"}
+              </p>
+          )}
         </div>
       </div>
   );
 };
 
-// Styles for components with improved mobile responsiveness
+// Styles for components with improved mobile responsiveness and centering
 const styles = {
+  pageContainer: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    height: "100vh",  // Full screen height
+    width: "100vw",   // Full screen width
+    margin: "0",
+    padding: "0",
+    backgroundColor: "#f8f9fa", // Optional light background
+  },
   container: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
     textAlign: "center",
     fontFamily: "Arial, sans-serif",
     padding: "20px",
-    maxWidth: "100%",
+    maxWidth: "400px",  // Prevents stretching on larger screens
+    width: "min(90%, 400px)", // Ensures responsiveness
+    minHeight: "200px",
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+    borderRadius: "10px",
+    backgroundColor: "white",
     margin: "0 auto",
   },
   title: {
     fontSize: "clamp(24px, 5vw, 36px)", // Responsive font size
     marginBottom: "20px",
+    textAlign: "center",
+    width: "100%",
   },
   progressContainer: {
     width: "min(150px, 80vw)",
@@ -193,6 +278,7 @@ const styles = {
     gap: "10px",
     marginBottom: "20px",
     flexWrap: "wrap", // Allow wrapping on very small screens
+    width: "100%",
   },
   colon: {
     fontSize: "24px",
@@ -201,8 +287,10 @@ const styles = {
   buttonContainer: {
     display: "flex",
     justifyContent: "center",
+    alignItems: "center",
     gap: "10px",
     flexWrap: "wrap", // Allow buttons to wrap on small screens
+    width: "100%",
   },
   startButton: {
     padding: "12px 24px",
@@ -228,6 +316,13 @@ const styles = {
     textAlign: "center",
     margin: "5px", // Add margin for when buttons wrap
   },
+  mobileInfo: {
+    fontSize: "14px",
+    color: "#666",
+    marginTop: "20px",
+    textAlign: "center",
+    width: "100%",
+  }
 };
 
 // Custom styles for react-select dropdowns
