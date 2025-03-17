@@ -20,6 +20,6 @@ npm run dev
 
 
 ## 🤖 AI Assistance
-This project was generated with the help of **ChatGPT-4o**, using my inputs and adjustments.
+This project was generated with the help of **ChatGPT-4o** and **Claude 3.7 Sonnet**, using my inputs and adjustments.
 
 
