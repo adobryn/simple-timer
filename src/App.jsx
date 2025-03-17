@@ -76,6 +76,9 @@ const Timer = () => {
 
   // Start the timer
   const startTimer = () => {
+    if ("Notification" in window && Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
     const totalSeconds = minutes * 60 + seconds;
     if (totalSeconds > 0) {
       setTimeLeft(totalSeconds);
