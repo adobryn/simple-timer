@@ -54,14 +54,6 @@ const Timer = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Request notification permission when the app loads
-  useEffect(() => {
-    if ("Notification" in window) {
-      if (Notification.permission !== "granted" && Notification.permission !== "denied") {
-        Notification.requestPermission();
-      }
-    }
-  }, []);
 
   // Save timer settings to localStorage whenever they change
   useEffect(() => {
@@ -74,9 +66,6 @@ const Timer = () => {
 
   // Start the timer
   const startTimer = () => {
-    if ("Notification" in window && Notification.permission !== "granted") {
-      Notification.requestPermission();
-    }
     const totalSeconds = minutes * 60 + seconds;
     if (totalSeconds > 0) {
       setTimeLeft(totalSeconds);
@@ -191,14 +180,6 @@ const Timer = () => {
               Stop
             </button>
           </div>
-
-          {isMobile && (
-              <p style={styles.mobileInfo}>
-                {Notification.permission !== "granted" ?
-                    "Please enable notifications for alerts when timer ends" :
-                    ""}
-              </p>
-          )}
         </div>
       </div>
   );
