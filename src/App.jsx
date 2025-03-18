@@ -14,6 +14,8 @@ const generateOptions = (max) =>
 const minuteOptions = generateOptions(10); // Minutes dropdown (0-10)
 const secondOptions = generateOptions(59); // Seconds dropdown (0-59)
 
+let audio = null;
+
 const Timer = () => {
   // Load saved timer settings from localStorage on initial render
   const getSavedTimerState = () => {
@@ -66,6 +68,11 @@ const Timer = () => {
 
   // Start the timer
   const startTimer = () => {
+    // Init audio
+    if (!audio) {
+      audio = new Audio("/happy-bell-alert.mp3");
+      audio.volume = 0.7;
+    }
     const totalSeconds = minutes * 60 + seconds;
     if (totalSeconds > 0) {
       setTimeLeft(totalSeconds);
@@ -82,11 +89,10 @@ const Timer = () => {
 
   // Notify the user when timer completes
   const notifyUser = () => {
-   // Play custom audio alert
-    const audio = new Audio("/happy-bell-alert.mp3"); // Correctly create audio object
-    audio.volume = 0.7; // ✅ Set volume directly
-    audio.play().catch(e => console.warn("Could not play audio alert:", e)); // Play audio
-
+    if (audio){
+      // Play custom audio alert
+      audio.play().catch(e => console.warn("Could not play audio alert:", e));
+    }
   };
 
   // Countdown effect with proper cleanup
