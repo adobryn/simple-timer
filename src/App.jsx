@@ -14,6 +14,8 @@ const generateOptions = (max) =>
 const minuteOptions = generateOptions(10); // Minutes dropdown (0-10)
 const secondOptions = generateOptions(59); // Seconds dropdown (0-59)
 
+let audio = null;
+
 const Timer = () => {
   // Load saved timer settings from localStorage on initial render
   const getSavedTimerState = () => {
@@ -54,14 +56,6 @@ const Timer = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Request notification permission when the app loads
-  useEffect(() => {
-    if ("Notification" in window) {
-      if (Notification.permission !== "granted" && Notification.permission !== "denied") {
-        Notification.requestPermission();
-      }
-    }
-  }, []);
 
   // Save timer settings to localStorage whenever they change
   useEffect(() => {
@@ -74,8 +68,10 @@ const Timer = () => {
 
   // Start the timer
   const startTimer = () => {
-    if ("Notification" in window && Notification.permission !== "granted") {
-      Notification.requestPermission();
+    // Init audio
+    if (!audio) {
+      audio = new Audio("/happy-bell-alert.mp3");
+      audio.volume = 0.7;
     }
     const totalSeconds = minutes * 60 + seconds;
     if (totalSeconds > 0) {
@@ -93,11 +89,10 @@ const Timer = () => {
 
   // Notify the user when timer completes
   const notifyUser = () => {
-   // Play custom audio alert
-    const audio = new Audio("/happy-bell-alert.wav"); // Correctly create audio object
-    audio.volume = 0.7; // ✅ Set volume directly
-    audio.play().catch(e => console.warn("Could not play audio alert:", e)); // Play audio
-
+    if (audio){
+      // Play custom audio alert
+      audio.play().catch(e => console.warn("Could not play audio alert:", e));
+    }
   };
 
   // Countdown effect with proper cleanup
@@ -191,14 +186,6 @@ const Timer = () => {
               Stop
             </button>
           </div>
-
-          {isMobile && (
-              <p style={styles.mobileInfo}>
-                {Notification.permission !== "granted" ?
-                    "Please enable notifications for alerts when timer ends" :
-                    ""}
-              </p>
-          )}
         </div>
       </div>
   );
